@@ -29,10 +29,9 @@ function getRates() {
 	});
 }
 
-
+//Операции с деньгами
 const moneyManager = new MoneyManager();
 
-//Пополнение баланса
 moneyManager.addMoneyCallback = (data) => {
 	ApiConnector.addMoney(data, (responseBody) => {
 		if (responseBody.success) {
@@ -45,16 +44,63 @@ moneyManager.addMoneyCallback = (data) => {
 	});
 };
 
-//Конвертирование валюты
 moneyManager.conversionMoneyCallback = (data) => {
 	ApiConnector.convertMoney(data, (responseBody) => {
-		console.log(responseBody);
+		if (responseBody.success) {
+			ProfileWidget.showProfile(responseBody.data);
+			moneyManager.setMessage(true, "Конвертация успешно выполнена!");
+		}
+		else {
+			moneyManager.setMessage(false, responseBody.error);
+		}
+	});
+};
+
+moneyManager.sendMoneyCallback = (data) => {
+	ApiConnector.transferMoney(data, (responseBody) => {
 		if (responseBody.success) {
 			ProfileWidget.showProfile(responseBody.data);
 			moneyManager.setMessage(true, "Перевод успешно выполнен!");
 		}
 		else {
 			moneyManager.setMessage(false, responseBody.error);
+		}
+	});
+};
+
+//Избранное 
+const favoritesWidget = new FavoritesWidget();
+
+ApiConnector.getFavorites((responseBody) => {
+	if (responseBody.success) {
+		favoritesWidget.clearTable();
+		favoritesWidget.fillTable(responseBody.data);
+		moneyManager.updateUsersList(responseBody.data);
+	}
+});
+
+favoritesWidget.addUserCallback = (data) => {
+	ApiConnector.addUserToFavorites(data, (responseBody) => {
+		if (responseBody.success) {
+			favoritesWidget.clearTable();
+			favoritesWidget.fillTable(responseBody.data);
+			moneyManager.updateUsersList(responseBody.data);
+			favoritesWidget.setMessage(true, 'Пользователен добавлен');
+		} else {
+			favoritesWidget.setMessage(false, responseBody.error);
+		}
+	});
+};
+
+favoritesWidget.removeUserCallback = (data) => {
+	ApiConnector.removeUserFromFavorites(data, (responseBody) => {
+		if (responseBody.success) {
+			favoritesWidget.clearTable();
+			favoritesWidget.fillTable(responseBody.data);
+			moneyManager.updateUsersList(responseBody.data);
+			favoritesWidget.setMessage(true, 'Пользователен удален');
+		} else {
+			favoritesWidget.setMessage(false, responseBody.error);
 		}
 	});
 };
